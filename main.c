@@ -2,22 +2,22 @@
 #include <stdlib.h>
 #include "api.h"
 
-#define VIDEO_MEM ((unsigned char *) 0x3c00)
-
 int main() {
 	unsigned int i = 0;
+	unsigned char x = 0;
 	
 	api_init();
 
-	
-	for (i = 0; i < 1024; ++i) {
-		VIDEO_MEM[i] = 0;
-	}
+	CLEAR();
+
 
 	for (;;) {
-		SET_PIXEL(10, 10, 1);
+		SET_PIXEL(x, 10, 1);
 
 		DISPLAY();
+
+		SET_PIXEL(x, 10, 0);
+		++x;
 		
 		LED_ON();
 		WAIT();
