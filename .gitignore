@@ -1,0 +1,6 @@
+fram.bin
+*.lst
+*.s
+*.o
+*.map
+.DS_Store
