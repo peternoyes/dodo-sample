@@ -3,25 +3,22 @@
 #include "api.h"
 
 int main() {
-	unsigned int i = 0;
 	unsigned char x = 0;
 	
-	api_init();
+	api_init();					// Initialize the API
 
-	CLEAR();
+	CLEAR();					// Clear the screen
 
 
 	for (;;) {
-		SET_PIXEL(x, 10, 1);
+		SET_PIXEL(x, 10, 1);	// Set pixel
 
-		DISPLAY();
+		DISPLAY();				// Push contents of video memory to screen (expensive call)
 
-		SET_PIXEL(x, 10, 0);
+		SET_PIXEL(x, 10, 0);	// Clear Pixel
 		++x;
 		
-		LED_ON();
-		WAIT();
-		LED_OFF();
+		WAIT();					// Wait for next interrupt, sync game loop
 	}
 
 	return 0;
