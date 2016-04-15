@@ -11,42 +11,61 @@ int main() {
 	unsigned char* ball_mask = (unsigned char*)_ball_mask;
 	unsigned char* hatch = (unsigned char*)_hatch;
 
-	unsigned char p, x, y, dir = 0;
-	
-	x = 10;
+	unsigned char p, x, y, xdir, ydir = 0;
+
+	// Create a buffer to store the portion of the background behind the ball.
+	// The buffer much be large enough to store the sprite and an additonal row of data
+	// If the sprite were 24x16, the buffer would need to be an additional 24 bytes larger
+	unsigned char* buffer = (unsigned char*)malloc(16);
 
 	api_init();					// Initialize the API
 
 	CLEAR();					// Clear the screen
+		
+	for (p = 0; p < 128; p += 8) {
+		for (y = 0; y < 64; y += 8) {
+			DRAW_SPRITE(hatch, p, y, 8, 8, 0, DRAW_NOP);
+		}
+	}
 
+	x = 0;
+	y = 0;
 
 	for (;;) {
-		for (p = 0; p < 128; p += 8) {
-			DRAW_SPRITE(hatch, p, 0, 8, 8, 0, DRAW_NOP);
-			DRAW_SPRITE(hatch, p, 8, 8, 8, 0, DRAW_NOP);
-		}
+		COPY_BACKGROUND(buffer, x, y, 8, 8, 0);	// Copy background into buffer
 
 		DRAW_SPRITE(ball_mask, x, y, 8, 8, 0, DRAW_AND);
 		DRAW_SPRITE(ball, x, y, 8, 8, 0, DRAW_OR);
 
 		DISPLAY();				// Push contents of video memory to screen (expensive call)
 
-		++x;
-		if (x > 120) {
-			x = 0;
+		COPY_BACKGROUND(buffer, x, y, 8, 8, 1);	// Copy buffer back into video memory, thus erasing the sprite
+
+		if (xdir == 0) {
+			++x;
+			if (x > 120) {
+				x = 120;
+				xdir = 1;
+			}
+		} else if (xdir == 1) {
+			--x;
+			if (x > 127) {
+				x = 0;
+				xdir = 0;
+			}
 		}
 
-		if (dir == 0) {
+		if (ydir == 0) {
 			++y;
-			if (y > 8) {
-				y = 8;
-				dir = 1;
+			if (y > 56) {
+				y = 56;
+				ydir = 1;
 			}
-		} else if (dir == 1) {
+		} else if (ydir == 1) {
 			--y;
 			if (y > 127) {
 				y = 0;
-				dir = 0;
+				ydir = 0;
 			}
 		}
 		
