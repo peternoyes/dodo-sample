@@ -4,14 +4,15 @@
 
 static unsigned char const _ball[8] = { 0x3c, 0x42, 0x81, 0x81, 0x81, 0x81, 0x42, 0x3c }; 
 static unsigned char const _ball_mask[8] = { 0xc3, 0x81, 0x00, 0x00, 0x00, 0x00, 0x81, 0xc3 };
-static unsigned char const _hatch[8] = { 0x55, 0xaa, 0x55, 0xaa, 0x55, 0xaa, 0x55, 0xaa };
+static unsigned char const _hatch[8] = { 0x55, 0x55, 0xaa, 0xaa, 0x55, 0x55, 0xaa, 0xaa };
 
 int main() {
 	unsigned char* ball = (unsigned char*)_ball;
 	unsigned char* ball_mask = (unsigned char*)_ball_mask;
 	unsigned char* hatch = (unsigned char*)_hatch;
 
-	unsigned char p, x, y, xdir, ydir = 0;
+	unsigned char p, x, y, ydir = 0;
+	unsigned char xdir = 0;				// For some reason this being declared on previous line causes bug on real hardware. Need to investigate.
 
 	// Create a buffer to store the portion of the background behind the ball.
 	// The buffer much be large enough to store the sprite and an additonal row of data
@@ -21,12 +22,15 @@ int main() {
 	api_init();					// Initialize the API
 
 	CLEAR();					// Clear the screen
-		
+
 	for (p = 0; p < 128; p += 8) {
 		for (y = 0; y < 64; y += 8) {
 			DRAW_SPRITE(hatch, p, y, 8, 8, 0, DRAW_NOP);
 		}
 	}
+
+	SET_CURSOR(3, 3);				// Row, Col
+	DRAW_STRING("Hello World!");
 
 	x = 0;
 	y = 0;
@@ -41,6 +45,7 @@ int main() {
 
 		COPY_BACKGROUND(buffer, x, y, 8, 8, 1);	// Copy buffer back into video memory, thus erasing the sprite
 
+		
 		if (xdir == 0) {
 			++x;
 			if (x > 120) {
