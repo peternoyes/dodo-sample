@@ -3,6 +3,11 @@
 
 #define byte unsigned char
 
+// Specify version compiled against. Semantic versioning enforcement takes place in CHECK_VERSION
+#define MAJOR 1
+#define MINOR 0
+#define REVISION 1
+
 #define SPI_WREN  0x06
 #define SPI_WRDI  0x04
 #define SPI_RDSR  0x05
@@ -14,6 +19,7 @@
 #define DRAW_NOP 0x0
 #define DRAW_OR  0x1
 #define DRAW_AND 0x2
+#define DRAW_XOR 0x4
 
 #define DRAW_SPRITE(sprite, x, y, w, h, f, m) draw_sprite_proto(sprite, x, y, w, h, f, m, 0)
 #define DISPLAY() display_proto(1)
@@ -25,14 +31,19 @@
 #define LED_OFF() led_off_proto(7)
 #define WAIT() wait_proto(8)
 #define LOAD_MUSIC(music) load_music_proto(music, 9)
-#define PLAY_EFFECT(effect) play_effect_proto(effect, 10)
+#define PLAY_EFFECT(effect) play_effect_proto(effect, 1, 10);
+#define PLAY_EFFECT_ONCE(effect) play_effect_proto(effect, 0, 10)
 #define SPI_ENABLE() spi_enable_proto(11)
 #define SPI_DISABLE() spi_disable_proto(12)
 #define SPI_WRITE(v) spi_write_proto(v, 13)
 #define CLEAR() clear_proto(14)
 #define COPY_BACKGROUND(data, x, y, w, h, dir) copy_background_proto(data, x, y, w, h, dir, 15)
-#define DRAW_STRING(text) draw_string_proto(text, 16);
-#define SET_CURSOR(row, col) set_cursor_proto(row, col, 17);
+#define DRAW_STRING(text) draw_string_proto(text, 16)
+#define SET_CURSOR(row, col) set_cursor_proto(row, col, 17)
+#define READ_BUTTONS() read_buttons_proto(18)
+#define GET_PIXEL(x, y) get_pixel_proto(x, y, 19)
+#define GET_VERSION(version) get_version_proto(version, 20);
+#define CHECK_VERSION(major, minor, revision) check_version_proto(major, minor, revision, 21)
 
 static void (*draw_sprite_proto)(byte*, byte, byte, byte, byte, byte, byte, byte);
 static void (*display_proto)(byte);
@@ -44,7 +55,7 @@ static void (*led_on_proto)(byte);
 static void (*led_off_proto)(byte);
 static void (*wait_proto)(byte);
 static void (*load_music_proto)(byte*, byte);
-static void (*play_effect_proto)(byte*, byte);
+static void (*play_effect_proto)(byte*, byte, byte);
 static void (*spi_enable_proto)(byte);
 static void (*spi_disable_proto)(byte);
 static byte (*spi_write_proto)(byte, byte);
@@ -52,6 +63,10 @@ static void (*clear_proto)(byte);
 static void (*copy_background_proto)(byte*, byte, byte, byte, byte, byte, byte);
 static void (*draw_string_proto)(char*, byte);
 static void (*set_cursor_proto)(byte, byte, byte);
+static byte (*read_buttons_proto)(byte);
+static byte (*get_pixel_proto)(byte, byte, byte);
+static void (*get_version_proto)(byte*, byte);
+static void (*check_version_proto)(byte, byte, byte, byte);
 
 
 static unsigned char get_sp() {
@@ -74,7 +89,7 @@ void api_init() {
 	led_off_proto = (void (*)(byte))(*(int*)0xFFF8);
 	wait_proto = (void (*)(byte))(*(int*)0xFFF8);
 	load_music_proto = (void (*)(byte*, byte))(*(int*)0xFFF8);
-	play_effect_proto = (void (*)(byte*, byte))(*(int*)0xFFF8);
+	play_effect_proto = (void (*)(byte*, byte, byte))(*(int*)0xFFF8);
 	spi_enable_proto = (void (*)(byte))(*(int*)0xFFF8);
 	spi_disable_proto = (void (*)(byte))(*(int*)0xFFF8);
 	spi_write_proto = (byte (*)(byte, byte))(*(int*)0xFFF8);
@@ -82,51 +97,12 @@ void api_init() {
 	copy_background_proto = (void (*)(byte*, byte, byte, byte, byte, byte, byte))(*(int*)0xFFF8);
 	draw_string_proto = (void (*)(char*, byte))(*(int*)0xFFF8);
 	set_cursor_proto = (void (*)(byte, byte, byte))(*(int*)0xFFF8);
-}
+	read_buttons_proto = (byte (*)(byte))(*(int*)0xFFF8);
+	get_pixel_proto = (byte (*)(byte, byte, byte))(*(int*)0xFFF8);
+	get_version_proto = (void (*)(byte*, byte))(*(int*)0xFFF8);
+	check_version_proto = (void (*)(byte, byte, byte, byte))(*(int*)0xFFF8);
 
-/*
-void getSpiDevice(unsigned char* manufacturer, unsigned char* density, unsigned char* product) {
-	SPI_ENABLE();
-	SPI_WRITE(SPI_RDID);
-	//*manufacturer = spi_write(0);
-	SPI_WRITE_R(0, (*manufacturer));
-	SPI_WRITE(0);
-	//*density = spi_write(0);
-	//*product = spi_write(0);
-	SPI_WRITE_R(0, (*density));
-	SPI_WRITE_R(0, (*product));
-	SPI_DISABLE();
+	CHECK_VERSION(MAJOR, MINOR, REVISION);	// This will spin forever if there is a version mismatch
 }
-
-unsigned char spiRead(unsigned int a) {
-	unsigned char v;
-	SPI_ENABLE();
-	SPI_WRITE(SPI_READ);
-	SPI_WRITE(((unsigned char)(a >> 8)));
-	SPI_WRITE(((unsigned char)(a & 0xFF)));
-	//v = spi_write(0);
-	SPI_WRITE_R(0, v);
-	SPI_DISABLE();
-	return v;
-}
-
-void spiWriteEnable(unsigned char e) {
-	SPI_ENABLE();
-	if (e == 1) {
-		SPI_WRITE(SPI_WREN);
-	} else {
-		SPI_WRITE(SPI_WRDI);
-	}
-	SPI_DISABLE();
-}
-
-void spiWrite(unsigned int a, unsigned char v) {
-	SPI_ENABLE();
-	SPI_WRITE(SPI_WRIT);
-	SPI_WRITE(((byte)(a >> 8)));
-	SPI_WRITE(((byte)(a & 0xFF)));
-	SPI_WRITE(v);
-	SPI_DISABLE();
-}*/
 
 #endif
